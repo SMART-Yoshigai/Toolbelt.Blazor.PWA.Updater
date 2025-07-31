@@ -2,158 +2,158 @@
 
 [![NuGet Package](https://img.shields.io/nuget/v/Toolbelt.Blazor.PWA.Updater.svg)](https://www.nuget.org/packages/Toolbelt.Blazor.PWA.Updater/) [![unit tests](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/actions/workflows/unit-tests.yml) [![Discord](https://img.shields.io/discord/798312431893348414?style=flat&logo=discord&logoColor=white&label=Blazor%20Community&labelColor=5865f2&color=gray)](https://discord.com/channels/798312431893348414/1202165955900473375)
 
-## 📝 Summary
+## 📝 概要
 
-Provide "Update Now" UI and feature to your Blazor PWA that appears when the next version of one is available.
+新しいバージョンが利用可能になったときに表示される「今すぐ更新」UIと機能をBlazor PWAに提供します。
 
 ![](https://raw.githubusercontent.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/main/.assets/fig.001.png)
 
-### Supported platforms
+### サポートプラットフォーム
 
-.NET 8, 9, or later. Both Blazor Server and Blazor Assembly are supported.
+.NET 8、9以降。Blazor ServerとBlazor WebAssemblyの両方をサポートしています。
 
-## 🤔 Backgrounds
+## 🤔 背景
 
-Typically, a service worker of PWA is never updated even when updated contents have been deployed to a server, even if you reload the page of that PWA. After the user has navigated away from the PWA in all tabs, updates will complete. This is not specific to Blazor, but rather is a standard web platform behavior.
+通常、PWAのサービスワーカーは、サーバーに更新されたコンテンツがデプロイされても、そのPWAのページを再読み込みしても更新されません。ユーザーがすべてのタブでPWAから離れた後に、更新が完了します。これはBlazor固有の問題ではなく、標準的なWebプラットフォームの動作です。
 
-For more detail, please see also the following link on the Microsoft Docs site.
+詳細については、Microsoft Docsサイトの以下のリンクも参照してください。
 
-[_"ASP.NET Core Blazor Progressive Web App (PWA)"_ | Miceooft Docs](https://docs.microsoft.com/aspnet/core/blazor/progressive-web-app?view=aspnetcore-6.0&tabs=visual-studio#update-completion-after-user-navigation-away-from-app)
+[_"ASP.NET Core Blazor Progressive Web App (PWA)"_ | Microsoft Docs](https://docs.microsoft.com/aspnet/core/blazor/progressive-web-app?view=aspnetcore-6.0&tabs=visual-studio#update-completion-after-user-navigation-away-from-app)
 
-However, sometimes, a site owner or a developer may want updates completed as soon as possible. In that case, all we can do is notify the user that the new version of the service worker is ready on the browser screen and trigger the update process via the user's manual action.
+しかし、時にはサイトオーナーや開発者ができるだけ早く更新を完了させたい場合があります。その場合、ブラウザ画面上でサービスワーカーの新しいバージョンが準備完了であることをユーザーに通知し、ユーザーの手動操作により更新プロセスをトリガーすることしかできません。
 
-This NuGet package allows us to implement that behavior like the following GIF animation on your Blazor PWA more easily.
+このNuGetパッケージを使用すると、以下のGIFアニメーションのような動作をBlazor PWAでより簡単に実装できます。
 
 ![](https://raw.githubusercontent.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/main/.assets/movie.001.gif)
 
-## 🚀 Quick Start
+## 🚀 クイックスタート
 
-### 1. Install this NuGet package
+### 1. このNuGetパッケージをインストール
 
 ```shell
 dotnet add package Toolbelt.Blazor.PWA.Updater
 ```
 
-### 2. Register a "PWA updater" service to a DI container
+### 2. DIコンテナに「PWA updater」サービスを登録
 
 ```csharp
-// 📜 This is the "Program.cs" file of your Blazor PWA.
+// 📜 これはBlazor PWAの「Program.cs」ファイルです。
 ...
-// 👇 Add this line to open the name space...
+// 👇 名前空間を開くためにこの行を追加...
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 ...
-// 👇 and add this line to register a "PWA updater" service to a DI container.
+// 👇 DIコンテナに「PWA updater」サービスを登録するためにこの行を追加。
 builder.Services.AddPWAUpdater();
 ...
 await builder.Build().RunAsync();
 ```
 
-### 3. Place a `<PWAUpdater>` component  somewhere in your Blazor PWA
+### 3. Blazor PWAのどこかに`<PWAUpdater>`コンポーネントを配置
 
-A `<PWAUpdater>` component is a user interface element showing users the "UPDATE NOW" button and its notification bar. One of the good places to place a `<PWAUpdater>` component is somewhere shared layout components, such as "MainLayout.razor".
+`<PWAUpdater>`コンポーネントは、ユーザーに「今すぐ更新」ボタンとその通知バーを表示するユーザーインターフェース要素です。`<PWAUpdater>`コンポーネントを配置する良い場所の1つは、「MainLayout.razor」などの共有レイアウトコンポーネントのどこかです。
 
 ```razor
-@* 📜 This is the "MainLayout.razor" file of your Blazor PWA *@
+@* 📜 これはBlazor PWAの「MainLayout.razor」ファイルです *@
 @inherits LayoutComponentBase
 
-@* 👇 Add this line to place the "UPDATE NOW" button UI. *@
+@* 👇 「今すぐ更新」ボタンUIを配置するためにこの行を追加。 *@
 <PWAUpdater />
 ...
 ```
 
-### 4. Modify the "service-worker.published.js" file
+### 4. 「service-worker.published.js」ファイルを修正
 
 ```js
-// 📜 This is the "service-worker.published.js" file of your Blazor PWA.
+// 📜 これはBlazor PWAの「service-worker.published.js」ファイルです。
 
-// 👇 Add these line to accept the message from this library.
+// 👇 このライブラリからのメッセージを受け入れるためにこれらの行を追加。
 self.addEventListener('message', event => { 
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 ...
 ```
 
-### 5. Modify the "index.html" file
+### 5. 「index.html」ファイルを修正
 
 ```html
-<!-- 📜 This is the "index.html" file of your Blazor PWA. -->
+<!-- 📜 これはBlazor PWAの「index.html」ファイルです。 -->
   ...
   <script src="_framework/blazor.webassembly.js"></script>
 
-  <!-- 👇 Remove this script, and...
+  <!-- 👇 このスクリプトを削除し...
   <script>navigator.serviceWorker.register('service-worker.js');</script> -->
 
-  <!-- 👇 add this script element instead. -->
+  <!-- 👇 代わりにこのスクリプト要素を追加。 -->
   <script src="_content/Toolbelt.Blazor.PWA.Updater.Service/script.min.js"></script>
 </body>
 </html>
 ```
 
-That's all.
+以上です。
 
-### NOTICE: Including CSS style sheet
+### 注意: CSSスタイルシートの含有
 
-This package assumes that the application uses Blazor's CSS isolation by default. Usually, this pre-requirement is appropriate. However, unfortunately, some Blazor projects scenario, such as those made by the "empty" project template, are not configured for CSS isolation. In this case, the CSS file of this package will never be loaded in the app, and the PWAUpdater component will not be shown correctly. To resolve this issue, you must include this package's CSS file yourself.
+このパッケージは、アプリケーションがデフォルトでBlazorのCSS分離を使用することを前提としています。通常、この前提条件は適切です。しかし、残念ながら「empty」プロジェクトテンプレートで作成されたプロジェクトなど、一部のBlazorプロジェクトシナリオではCSS分離が設定されていません。この場合、このパッケージのCSSファイルはアプリで読み込まれることがなく、PWAUpdaterコンポーネントが正しく表示されません。この問題を解決するには、このパッケージのCSSファイルを自分で含める必要があります。
 
-Specifically, you should include the bundled CSS file for the project in the fallback HTML document file, like the following code,
+具体的には、以下のコードのように、フォールバックHTMLドキュメントファイルにプロジェクト用のバンドルCSSファイルを含めるか、
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     ...
-    <!-- 👇 Add this line. -->
+    <!-- 👇 この行を追加。 -->
     <link href="{ASSEMBLY NAME}.styles.css" rel="stylesheet" />
     ....
 ```
 
-or include the CSS file for this package individually, like the following code.
+または、以下のコードのように、このパッケージ用のCSSファイルを個別に含めます。
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     ...
-    <!-- 👇 Add this line. -->
+    <!-- 👇 この行を追加。 -->
     <link href="_content/Toolbelt.Blazor.PWA.Updater/Toolbelt.Blazor.PWA.Updater.bundle.scp.css"
         rel="stylesheet" />
     ...
 ```
 
-See also: https://learn.microsoft.com/aspnet/core/blazor/components/css-isolation
+参照: https://learn.microsoft.com/aspnet/core/blazor/components/css-isolation
 
 
-## ⚙️ Configuration
+## ⚙️ 設定
 
-### Parameters of the `PWAUpdater` component
+### `PWAUpdater`コンポーネントのパラメータ
 
-Parameter           | Type   | Description
+パラメータ           | 型   | 説明
 --------------------|--------|--------------
-Text                | string | The text that is shown on the notification bar UI. The default value is "The new version is ready.".
-ButtonCaption       | string | The text that is shown as the caption of the button to trigger updates. The default value is "UPDATE NOW".
-Align               | PWAUpdater.Aligns | The value to specify the position of the notification bar, whether `Top` or `Bottom`. The default value is `Top`.
-EnvironmentsForWork | string | The comma-separated string that specifies environment names that the notification UI should work. If this parameter is an empty string, notification always works regardless of the current environment name, including during development. Usually, notification UI should be a bother during development, so the default value of this parameter is "Production", which doesn't include "Development".
-State (*Bindable)   | PWAUpdater.States | The value to specify or represents the visibility state of the notification bar, whether `Hidden`, `Showing`, `Shown`, or `Hiding`. The default value is `Hidden`.
-StateChanged        | EventCallback<PWAUpdater.States> | The event callback that will be invoked when the `State` parameter value changes.
-ChildContent        | Renderfragment | the content to be rendered as a part of the notification bar.
+Text                | string | 通知バーUIに表示されるテキスト。デフォルト値は「The new version is ready.」です。
+ButtonCaption       | string | 更新をトリガーするボタンのキャプションとして表示されるテキスト。デフォルト値は「UPDATE NOW」です。
+Align               | PWAUpdater.Aligns | 通知バーの位置を指定する値で、`Top`または`Bottom`です。デフォルト値は`Top`です。
+EnvironmentsForWork | string | 通知UIが動作する環境名を指定するカンマ区切りの文字列。このパラメータが空文字列の場合、開発中を含む現在の環境名に関係なく通知が常に動作します。通常、通知UIは開発中は煩わしいものなので、このパラメータのデフォルト値は「Development」を含まない「Production」です。
+State (*バインド可能)   | PWAUpdater.States | 通知バーの表示状態を指定または表現する値で、`Hidden`、`Showing`、`Shown`、`Hiding`のいずれかです。デフォルト値は`Hidden`です。
+StateChanged        | EventCallback<PWAUpdater.States> | `State`パラメータの値が変更されたときに呼び出されるイベントコールバック。
+ChildContent        | Renderfragment | 通知バーの一部としてレンダリングされるコンテンツ。
 
-### How to make the notification bar of `PWAUpdater` visible forcibly
+### `PWAUpdater`の通知バーを強制的に表示する方法
 
-Sometimes developers might want to make the notification bar visible even though any updates of a service worker have not happened in such a case if they are working on customizing the appearance of the notification bar.
+開発者が通知バーの外観をカスタマイズする作業をしている場合など、サービスワーカーの更新が発生していなくても通知バーを表示したい場合があります。
 
-In that case, developers can do that by setting the initial value of the `State` parameter of the `PWAUpdater` component to `Showing` temporarily.
+その場合、`PWAUpdater`コンポーネントの`State`パラメータの初期値を一時的に`Showing`に設定することで実現できます。
 
 ```html
 <PWAUpdater State="PWAUpdater.States.Showing"/>
 ```
 
-Please don't forget to remove the settings of the `State` parameter before release.
+リリース前に`State`パラメータの設定を削除することを忘れないでください。
 
-### How to add child contents of the notification bar of `PWAUpdater`
+### `PWAUpdater`の通知バーに子コンテンツを追加する方法
 
-If you want to add custom content into the notification bar of `PWAUpdater` as its child content, you can do that in the usual Blazor programming way. In other words, write markup as a child node of the `<PWAUpdater>` tag.
+`PWAUpdater`の通知バーにその子コンテンツとしてカスタムコンテンツを追加したい場合は、通常のBlazorプログラミング方法で行うことができます。つまり、`<PWAUpdater>`タグの子ノードとしてマークアップを記述します。
 
-For example, if you  markup the component like this,
+例えば、コンポーネントを次のようにマークアップすると、
 
 ```html
 <PWAUpdater>
@@ -164,24 +164,24 @@ For example, if you  markup the component like this,
 </PWAUpdater>
 ```
 
-You will see the screen, like the below picture.
+以下の画像のような画面が表示されます。
 
 ![](https://raw.githubusercontent.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/main/.assets/fig.003.png)
 
-### CSS custom properties (variables) for the `PWAUpdater` component
+### `PWAUpdater`コンポーネント用のCSSカスタムプロパティ（変数）
 
-The following CSS custom properties (variables) are defined in the `.pwa-updater[b-pwa-updater]` scope to configure the appearance of the notification UI.
+通知UIの外観を設定するために、`.pwa-updater[b-pwa-updater]`スコープで以下のCSSカスタムプロパティ（変数）が定義されています。
 
-Property name               | Description
+プロパティ名               | 説明
 ----------------------------|---------------------------
---pwa-updater-font-size     | The font size of the notification UI. The default value is `13px`.
---pwa-updater-font-family   | The font family of the notification UI. The default value is `sans-serif`.
---pwa-updater-bar-height    | The height of the notification UI. The default value is `32px`.
---pwa-updater-bar-color     | The foreground color of notification UI. The default value is `white`.
---pwa-updater-bar-backcolor | The background color of notification UI. The default value is `darkorange`.
---pwa-updater-bar-z-index   | The Z-index value of the notification UI. The default value is `10`.
+--pwa-updater-font-size     | 通知UIのフォントサイズ。デフォルト値は`13px`です。
+--pwa-updater-font-family   | 通知UIのフォントファミリー。デフォルト値は`sans-serif`です。
+--pwa-updater-bar-height    | 通知UIの高さ。デフォルト値は`32px`です。
+--pwa-updater-bar-color     | 通知UIの前景色。デフォルト値は`white`です。
+--pwa-updater-bar-backcolor | 通知UIの背景色。デフォルト値は`darkorange`です。
+--pwa-updater-bar-z-index   | 通知UIのZ-index値。デフォルト値は`10`です。
 
-If you define CSS style as below in your Blazor PWA,
+Blazor PWAで以下のようなCSSスタイルを定義すると、
 
 ```css
 body .pwa-updater[b-pwa-updater] {
@@ -189,18 +189,18 @@ body .pwa-updater[b-pwa-updater] {
 }
 ```
 
-you will get the green appearance of the notification UI like below.
+以下のような緑色の通知UIの外観を取得できます。
 
 ![](https://raw.githubusercontent.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/main/.assets/fig.002.png)
 
-### Customize a service worker's script file name
+### サービスワーカーのスクリプトファイル名をカスタマイズ
 
-By default, this package will load the "service-worker.js" JavaScript file as a service worker. If the service worker's script file path on your Blazor PWA is not "service-worker.js", then you have to specify that path as the property of the script element loading the JavaScript file of the "PWA Updater" like the following example.
+デフォルトでは、このパッケージはサービスワーカーとして「service-worker.js」JavaScriptファイルを読み込みます。Blazor PWAのサービスワーカーのスクリプトファイルパスが「service-worker.js」でない場合は、以下の例のように「PWA Updater」のJavaScriptファイルを読み込むスクリプト要素のプロパティとしてそのパスを指定する必要があります。
 
 ```html
-<!-- 📜 This is the "index.html" file of your Blazor PWA. -->
+<!-- 📜 これはBlazor PWAの「index.html」ファイルです。 -->
   ...
-  <!-- 👇 Set the "register" to specify the service worker script file. -->
+  <!-- 👇 サービスワーカースクリプトファイルを指定するために「register」を設定。 -->
   <script src="_content/Toolbelt.Blazor.PWA.Updater.Service/script.min.js"
           register="path/to/your-service-worker.js">
   </script> 
@@ -208,16 +208,16 @@ By default, this package will load the "service-worker.js" JavaScript file as a 
 </html>
 ```
 
-### Customize the process of registering a service worker
+### サービスワーカーの登録プロセスをカスタマイズ
 
-Sometimes, you may have to do something in a service worker registering process. In this case, you can add the `no-register` attribute to the script element loading the JavaScript file of the "PWA Updater" to prevent loading the service worker's script file by that automatically.
+時には、サービスワーカーの登録プロセスで何かを行う必要がある場合があります。この場合、「PWA Updater」のJavaScriptファイルを読み込むスクリプト要素に`no-register`属性を追加して、自動的にサービスワーカーのスクリプトファイルが読み込まれるのを防ぐことができます。
 
-If you do that, please manually invoke the `Toolbelt.Blazor.PWA.Updater.handleRegistration()` method, that is part of the "PWA Updater" JavaScript code, at the call back of the service worker registered.
+その場合は、サービスワーカーの登録のコールバックで、「PWA Updater」JavaScriptコードの一部である`Toolbelt.Blazor.PWA.Updater.handleRegistration()`メソッドを手動で呼び出してください。
 
 ```html
-<!-- 📜 This is the "index.html" file of your Blazor PWA. -->
+<!-- 📜 これはBlazor PWAの「index.html」ファイルです。 -->
   ...
-  <!-- 👇 Set "no-register" attribute to prevent service worker registration. -->
+  <!-- 👇 サービスワーカーの登録を防ぐために「no-register」属性を設定。 -->
   <script src="_content/Toolbelt.Blazor.PWA.Updater.Service/script.min.js"
           no-register>
   </script>
@@ -225,7 +225,7 @@ If you do that, please manually invoke the `Toolbelt.Blazor.PWA.Updater.handleRe
   <script>
     navigator.serviceWorker.register('service-worker.js').then(registration => {
       ...
-      // 👇 Invoke this manually.
+      // 👇 これを手動で呼び出し。
       Toolbelt.Blazor.PWA.Updater.handleRegistration(registration);
       ...
     });
@@ -234,29 +234,29 @@ If you do that, please manually invoke the `Toolbelt.Blazor.PWA.Updater.handleRe
 </html>
 ```
 
-## ⛏️ Implement UI from scratch
+## ⛏️ UIをゼロから実装
 
-You can implement your UI component for "PWA Updater" from scratch.
+「PWA Updater」用のUIコンポーネントをゼロから実装することができます。
 
-To do that, at first, reference only the `Toolbelt.Blazor.PWA.Updater.Service` NuGet package instead of the `Toolbelt.Blazor.PWA.Updater` NuGet package.
+そのためには、まず`Toolbelt.Blazor.PWA.Updater`NuGetパッケージの代わりに`Toolbelt.Blazor.PWA.Updater.Service`NuGetパッケージのみを参照します。
 
 ```shell
 dotnet add package Toolbelt.Blazor.PWA.Updater.Service
 ```
 
-Next, inject the `IPWAUpdaterService` object into your Razor component.
+次に、`IPWAUpdaterService`オブジェクトをRazorコンポーネントに注入します。
 
 ```razor
-@* 📜 Your Razor component file (.razor) *@
+@* 📜 Razorコンポーネントファイル (.razor) *@
 @using Toolbelt.Blazor.PWA.Updater.Service
 @inject IPWAUpdaterService PWAUpdaterService
 ...
 ```
 
-Then, subscribe to the `NextVersionIsWaiting` event on your component. When the `NextVersionIsWaiting` event is fired, the Blazor PWA is ready to update to the next version. Ordinary, the component should show a notification to users when this event was fired.
+そして、コンポーネントで`NextVersionIsWaiting`イベントを購読します。`NextVersionIsWaiting`イベントが発生したとき、Blazor PWAは次のバージョンに更新する準備ができています。通常、このイベントが発生したときにコンポーネントはユーザーに通知を表示する必要があります。
 
 ```razor
-@* 📜 Your Razor component file (.razor) *@
+@* 📜 Razorコンポーネントファイル (.razor) *@
 ...
 @code {
   protected override void OnAfterRender(bool firstRender)
@@ -269,14 +269,14 @@ Then, subscribe to the `NextVersionIsWaiting` event on your component. When the 
   ...
 ```
 
-> **Warning**  
-> I strongly recommend subscribing to that event in the `OnAfterRender` life cycle event method. If you subscribe to the event in other life cycle methods such as `OnInitialized`, you will run into an error at runtime when server-side pre-rendering if you implemented server-side pre-rendering on the Blazor PWA.
+> **警告**  
+> そのイベントを`OnAfterRender`ライフサイクルイベントメソッドで購読することを強くお勧めします。`OnInitialized`などの他のライフサイクルメソッドでイベントを購読すると、Blazor PWAでサーバーサイドプリレンダリングを実装している場合、サーバーサイドプリレンダリング時にランタイムエラーが発生します。
 
-> **Warning**  
-> Please remember to unsubscribe the subscription to the `NextVersionIsWaiting` event when your component will be disposing, like an example code below.
+> **警告**  
+> 以下のサンプルコードのように、コンポーネントが破棄されるときに`NextVersionIsWaiting`イベントの購読を解除することを忘れないでください。
 
 ```razor
-@* 📜 Your Razor component file (.razor) *@
+@* 📜 Razorコンポーネントファイル (.razor) *@
 ...
 @implements IDisposable
 ...
@@ -289,10 +289,10 @@ Then, subscribe to the `NextVersionIsWaiting` event on your component. When the 
   ...
 ```
 
-At last, invoke the `SkipWaitingAsync` async method of the `IPWAUpdaterService` object for updating the Blazor PWA to the next version. Ordinary that method should be invoked according to the user's actions. The `SkipWaitingAsync` method will cause updating the Blazor PWA to the next version, and the Blazor PWA will be reloaded immediately.
+最後に、Blazor PWAを次のバージョンに更新するために`IPWAUpdaterService`オブジェクトの`SkipWaitingAsync`非同期メソッドを呼び出します。通常、このメソッドはユーザーのアクションに応じて呼び出される必要があります。`SkipWaitingAsync`メソッドはBlazor PWAを次のバージョンに更新し、Blazor PWAは即座に再読み込みされます。
 
 ```razor
-@* 📜 Your Razor component file (.razor) *@
+@* 📜 Razorコンポーネントファイル (.razor) *@
 ...
 @code {
   ...
@@ -303,13 +303,13 @@ At last, invoke the `SkipWaitingAsync` async method of the `IPWAUpdaterService` 
   ...
 ```
 
-Additionally, please consider implementing your UI will work only on a released environment. If the "PWA Updater" UI always works, including the development phase, it must deteriorate the development speed. The UI provided by the `Toolbelt.Blazor.PWA.Updater` NuGet package is doing that by referencing the `Environment` property of the `IWebAssemblyHostEnvironment` object.
+さらに、UIがリリース環境でのみ動作するように実装することを検討してください。「PWA Updater」UIが開発フェーズを含めて常に動作する場合、開発速度が低下する必要があります。`Toolbelt.Blazor.PWA.Updater`NuGetパッケージによって提供されるUIは、`IWebAssemblyHostEnvironment`オブジェクトの`Environment`プロパティを参照することでそれを行っています。
 
-## 🎉 Release Notes
+## 🎉 リリースノート
 
-- [For Toolbelt.Blazor.PWA.Updater](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/blob/main/Updater/RELEASE-NOTES.txt).
-- [For Toolbelt.Blazor.PWA.Updater.Service](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/blob/main/Updater.Service/RELEASE-NOTES.txt).
+- [Toolbelt.Blazor.PWA.Updater用](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/blob/main/Updater/RELEASE-NOTES.txt)
+- [Toolbelt.Blazor.PWA.Updater.Service用](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/blob/main/Updater.Service/RELEASE-NOTES.txt)
 
-## 📢 License
+## 📢 ライセンス
 
 [Mozilla Public License Version 2.0](https://github.com/jsakamoto/Toolbelt.Blazor.PWA.Updater/blob/main/LICENSE)
