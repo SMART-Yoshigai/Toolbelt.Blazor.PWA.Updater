@@ -1,10 +1,19 @@
 ﻿@using Microsoft.Extensions.Logging
 @using System.ComponentModel
 
+@*
+    PWAアップデーター Blazorコンポーネント
+    Service Workerによる新バージョン検出時に通知バーを表示し、
+    ユーザーに更新の選択肢を提供するUIコンポーネント
+*@
 @implements IDisposable
 @inject IPWAUpdaterService PWAUpdaterService
 @inject ILogger<PWAUpdater> Logger
 
+@*
+    通知バーのUI表示
+    状態に応じて表示/非表示を切り替え、位置指定（上部/下部）とアニメーション効果を提供
+*@
 @if (this.State != States.Hidden)
 {
     <div class="@("pwa-updater" + (this.State == States.Shown ? " visible" : "") + (this.Align == Aligns.Top ? " align-top" : " align-bottom"))">
@@ -18,79 +27,87 @@
 @code {
 
     /// <summary>
-    /// The state of visibility of the PWAUpdater component.
+    /// PWAアップデーターコンポーネントの表示状態
+    /// アニメーション効果を含む表示/非表示の状態管理
     /// </summary>
     public enum States
     {
-        Hidden,
-        Showing,
-        Shown,
-        Hiding
+        Hidden,     // 非表示
+        Showing,    // 表示中（アニメーション）
+        Shown,      // 表示完了
+        Hiding      // 非表示中（アニメーション）
     }
 
     /// <summary>
-    /// Gets or sets the current state of visibility of the component.<br/>
-    /// You can set this property from <see cref="States.Shown"/> to <see cref="States.Hiding"/> to be hidden from outside of the component when the component was being appeared.<br/>
-    /// And for the other purpose, you can also set this property to <see cref="States.Showing"/> explicitly to be visible forcibly for the purpose of developing custom looks &amp; feels, even when the next version of the service worker does not exist.
+    /// コンポーネントの現在の表示状態を取得または設定<br/>
+    /// コンポーネントが表示中の際に外部から <see cref="States.Shown"/> から <see cref="States.Hiding"/> に設定して非表示にできます。<br/>
+    /// また、開発用途としてService Workerの新バージョンが存在しない場合でも <see cref="States.Showing"/> に明示的に設定して強制的に表示状態にすることもできます。
     /// </summary>
     [Parameter]
     public States State { get; set; } = States.Hidden;
 
     /// <summary>
-    /// Gets or sets the event callback that will be invoked when the <see cref="State"/> property value changes.
+    /// <see cref="State"/> プロパティ値が変更された際に呼び出されるイベントコールバックを取得または設定
     /// </summary>
     [Parameter]
     public EventCallback<States> StateChanged { get; set; }
 
     /// <summary>
-    /// The position to be placed the PWAUpdater component on the page.
+    /// PWAアップデーターコンポーネントをページ上に配置する位置
     /// </summary>
     public enum Aligns
     {
-        Top = 0,
+        Top = 0,    // 上部配置
         [Obsolete("It's a typo. Use 'Bottom' instead of 'Buttom'."), EditorBrowsable(EditorBrowsableState.Never)]
         Buttom = 1,
-        Bottom = 1
+        Bottom = 1  // 下部配置
     }
 
     /// <summary>
-    /// The text that is shown on the notification bar UI.
+    /// 通知バーUIに表示するテキスト
     /// </summary>
     [Parameter]
     public string? Text { get; set; } = "The new version is ready.";
 
     /// <summary>
-    /// The text that is shown as the caption of the button to trigger updates.
+    /// 更新を実行するボタンのキャプションとして表示するテキスト
     /// </summary>
     [Parameter]
     public string? ButtonCaption { get; set; } = "UPDATE NOW";
 
     /// <summary>
-    /// The value to specify the position of the notification bar, whether <see cref="Aligns.Top"/> or <see cref="Aligns.Buttom"/>.
+    /// 通知バーの位置を指定する値（<see cref="Aligns.Top"/> または <see cref="Aligns.Bottom"/>）
     /// </summary>
     [Parameter]
     public Aligns Align { get; set; } = Aligns.Top;
 
     /// <summary>
-    /// The comma-separated string that specifies environment names that the notification UI should work.<br/>
-    /// The default value is "Production".
+    /// 通知UIが動作する環境名をカンマ区切りで指定する文字列<br/>
+    /// デフォルト値は "Production"
     /// </summary>
     [Parameter]
     public string? EnvironmentsForWork { get; set; } = "Production";
 
     /// <summary>
-    /// Gets or sets the content to be rendered as a part of the PWAUpdate component.
+    /// PWAアップデートコンポーネントの一部としてレンダリングされるコンテンツを取得または設定
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// コンポーネントのレンダリング後処理
+    /// 初回レンダリング時にサービスイベントを登録し、
+    /// 表示/非表示アニメーションのタイミング制御を行う
+    /// </summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            // PWAアップデーターサービスの新バージョン待機イベントを登録
             this.PWAUpdaterService.NextVersionIsWaiting += PWAUpdaterService_NextVersionIsWaiting;
         }
 
+        // 表示アニメーション（Showing → Shown）
         if (this.State == States.Showing)
         {
             await Task.Delay(200);
@@ -102,6 +119,7 @@
             }
         }
 
+        // 非表示アニメーション（Hiding → Hidden）
         if (this.State == States.Hiding)
         {
             await Task.Delay(500);
@@ -114,11 +132,19 @@
         }
     }
 
+    /// <summary>
+    /// リソースの解放
+    /// コンポーネント破棄時にイベント登録を解除
+    /// </summary>
     void IDisposable.Dispose()
     {
         this.PWAUpdaterService.NextVersionIsWaiting -= PWAUpdaterService_NextVersionIsWaiting;
     }
 
+    /// <summary>
+    /// PWAアップデーターサービスからの新バージョン待機通知イベントハンドラー
+    /// 環境設定に基づいて通知表示の可否を判定し、該当環境でのみUIを表示
+    /// </summary>
     private void PWAUpdaterService_NextVersionIsWaiting(object? sender, EventArgs args)
     {
         var environments = this.EnvironmentsForWork?.Split(',').Select(s => s.Trim()).Where(s => s != "") ?? Enumerable.Empty<string>();
@@ -136,6 +162,10 @@
         });
     }
 
+    /// <summary>
+    /// 通知バーの表示処理
+    /// 非表示または非表示中の状態から表示状態へ遷移
+    /// </summary>
     private async Task ShowAsync()
     {
         if (this.State is States.Hidden or States.Hiding)
@@ -146,11 +176,19 @@
         }
     }
 
+    /// <summary>
+    /// 「今すぐ更新」ボタンクリック時の処理
+    /// Service Workerの待機状態をスキップしてアップデートを開始
+    /// </summary>
     private async Task OnClickUpdateNowAsync()
     {
         await this.PWAUpdaterService.SkipWaitingAsync();
     }
 
+    /// <summary>
+    /// 閉じるボタンクリック時の処理
+    /// 通知バーを非表示状態に遷移
+    /// </summary>
     private async Task OnClickClose()
     {
         if (this.State is not States.Hiding and not States.Hidden)
