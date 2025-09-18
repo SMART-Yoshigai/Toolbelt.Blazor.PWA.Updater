@@ -1,10 +1,17 @@
 ﻿@inherits LayoutComponentBase
+@inject IPWAUpdaterService PWAUpdaterService
 
 <PageTitle>BlazorServerPWA1</PageTitle>
 
 <div class="page">
     <div class="sidebar">
         <NavMenu />
+        
+        <div style="text-align: center; margin-bottom: 12px;">
+            <button class="btn btn-primary btn-sm" @onclick="OnCheckForUpdateAsync">
+                CHECK FOR UPDATE
+            </button>
+        </div>
     </div>
 
     <main>
@@ -17,3 +24,10 @@
         </article>
     </main>
 </div>
+
+@code {
+    private async Task OnCheckForUpdateAsync()
+    {
+        await PWAUpdaterService.CheckForUpdateAsync();
+    }
+}

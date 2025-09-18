@@ -7,4 +7,6 @@ public interface IPWAUpdaterService
     event EventHandler? NextVersionIsWaiting;
 
     ValueTask SkipWaitingAsync();
+
+    ValueTask CheckForUpdateAsync();
 }

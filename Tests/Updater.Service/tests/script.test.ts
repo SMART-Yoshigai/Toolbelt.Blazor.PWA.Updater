@@ -282,4 +282,27 @@ describe('test for PWA Updater script', () => {
         expect(pageReloaded).toBe(true);
         expect(context.dotNetObj.invokeHistories).toEqual(["OnNextVersionIsWaiting"]);
     })
+
+    test("manual update check with checkForUpdate", async () => {
+        // GIVEN - Service Workerが既にアクティブな状態でテスト環境を初期化
+        const { context, window } = await createContext({
+            initialState: {
+                active: "activated"
+            }
+        });
+
+        // 登録状態の確認
+        expect(context.registration.installing).toBeNull();
+        expect(context.registration.waiting).toBeNull();
+        expect(context.registration.active).toBeState("activated");
+
+        // WHEN: 手動で更新チェックを実行
+        window.Toolbelt.Blazor.PWA.Updater.checkForUpdate();
+
+        // 新Service Workerが検出されるまで待機
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // THEN: 更新チェックが実行され、registration.update()が呼び出されていることを確認
+        expect(context.registration.updateCallCount).toBeGreaterThan(0);
+    })
 });

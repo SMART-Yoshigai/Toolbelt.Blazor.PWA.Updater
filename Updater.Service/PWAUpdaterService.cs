@@ -141,6 +141,15 @@ internal class PWAUpdaterService : IPWAUpdaterService, IDisposable
     }
 
     /// <summary>
+    /// ユーザー主導でService Workerの更新チェックを実行
+    /// 手動更新チェック機能 - ユーザーが明示的に更新を確認したい場合に使用
+    /// </summary>
+    public async ValueTask CheckForUpdateAsync()
+    {
+        await this._JSRuntime.InvokeVoidAsync(_NS + ".checkForUpdate");
+    }
+
+    /// <summary>
     /// JavaScript側からの新バージョン待機通知を受信
     /// Service Workerが新しいバージョンを検出した際にJavaScriptから呼び出される
     /// </summary>
