@@ -303,6 +303,36 @@ dotnet add package Toolbelt.Blazor.PWA.Updater.Service
   ...
 ```
 
+### 手動更新チェック機能
+
+新バージョンの更新チェックをユーザー主導で実行できる機能も提供されています。`IPWAUpdaterService`オブジェクトの`CheckForUpdateAsync`非同期メソッドを呼び出すことで、明示的にService Workerの更新チェックを実行できます。
+
+```razor
+@* 📜 Razorコンポーネントファイル (.razor) *@
+...
+@code {
+  ...
+  private async Task OnClickCheckForUpdateAsync()
+  {
+    await this.PWAUpdaterService.CheckForUpdateAsync();
+  }
+  ...
+```
+
+この機能は以下のシナリオで有用です：
+
+- ユーザーが「更新を確認」ボタンをクリックした場合
+- 定期的なタイマーで更新チェックを実行したい場合
+- アプリケーション起動時やユーザー操作時に更新を確認したい場合
+
+JavaScript側でも同等の機能を提供しています：
+
+```javascript
+// JavaScript側で直接呼び出す場合
+await window.Toolbelt.Blazor.PWA.Updater.checkForUpdate();
+```
+```
+
 さらに、UIがリリース環境でのみ動作するように実装することを検討してください。「PWA Updater」UIが開発フェーズを含めて常に動作する場合、開発速度が低下する必要があります。`Toolbelt.Blazor.PWA.Updater`NuGetパッケージによって提供されるUIは、`IWebAssemblyHostEnvironment`オブジェクトの`Environment`プロパティを参照することでそれを行っています。
 
 ## 🎉 リリースノート

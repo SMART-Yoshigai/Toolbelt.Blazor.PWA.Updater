@@ -6,12 +6,16 @@ export class WorkerRegistrationMock {
     public installing: ServiceWorkerMock | null = null;
     public waiting: ServiceWorkerMock | null = null;
     public active: ServiceWorkerMock | null = null;
+    public updateCallCount: number = 0;
     private eventListeners: { [key: string]: (() => void)[] } = {};
     public addEventListener(event: string, callback: () => void) {
         (this.eventListeners[event] ??= []).push(callback);
     }
     public async dispatchEvent(event: string) {
         this.eventListeners[event]?.forEach(callback => callback());
+    }
+    public async update(): Promise<void> {
+        this.updateCallCount++;
     }
     public moveStage(arg: { from: KeyOfStage, to: KeyOfStage }): ServiceWorkerMock {
         this[arg.to] = this[arg.from];

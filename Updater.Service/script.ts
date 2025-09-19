@@ -23,6 +23,7 @@ interface IDotNetObjectRef {
                 // 初回インストール判定、待機中Service Worker、.NETオブジェクト準備完了の管理
                 let initialInstallation = false;
                 let waiting: ServiceWorker | null = NULL;
+                let currentRegistration: ServiceWorkerRegistration | null = NULL;
                 const waitForDotNetObjReady = Promise.withResolvers<IDotNetObjectRef>();
 
                 // 新バージョン待機中の通知をBlazorに送信
@@ -56,6 +57,7 @@ interface IDotNetObjectRef {
                 // Service Worker登録の処理
                 // 初回インストール判定と既存/新規Service Workerの監視を開始
                 const handleRegistration = (registration: ServiceWorkerRegistration) => {
+                    currentRegistration = registration;
                     initialInstallation = registration.active === NULL;
                     const waiting = registration.waiting;
                     notifyNextVersionIsWaitingToBlazor(waiting);
@@ -73,6 +75,18 @@ interface IDotNetObjectRef {
                 // Service Workerの待機状態をスキップ
                 // ユーザーが「今すぐ更新」ボタンをクリックした際に呼び出される
                 Updater.skipWaiting = () => waiting?.postMessage({ type: 'SKIP_WAITING' });
+
+                // ユーザー主導でService Workerの更新チェックを実行
+                // 手動更新チェック機能 - ユーザーが明示的に更新を確認したい場合に使用
+                Updater.checkForUpdate = async () => {
+                    if (currentRegistration) {
+                        try {
+                            await currentRegistration.update();
+                        } catch (error) {
+                            console.error('Service Worker update check failed:', error);
+                        }
+                    }
+                };
 
                 // 自動登録が無効でない場合、Service Workerを登録
                 if (!noRegister) {
